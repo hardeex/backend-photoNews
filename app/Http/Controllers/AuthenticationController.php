@@ -163,4 +163,34 @@ class AuthenticationController extends Controller
             ], 500);
         }
     }
+
+
+    //manage tokens
+
+    public function refreshToken(Request $request)
+    {
+        // Retrieve the refresh token from the request 
+        $refreshToken = $request->input('refresh_token');
+
+        try {
+            // Refresh the access token using the refresh token
+            $newAccessToken = JWTAuth::refresh($refreshToken);
+
+            // generate a new refresh token 
+            $newRefreshToken = JWTAuth::fromUser(JWTAuth::user());
+
+            return response()->json([
+                'status' => 'success',
+                'access_token' => $newAccessToken,
+                'refresh_token' => $newRefreshToken,
+            ]);
+        } catch (JWTException $e) {
+            // Log and return an error response if the refresh token is invalid or expired
+            Log::error('Failed to refresh token: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to refresh token.',
+            ], 401);
+        }
+    }
 }
